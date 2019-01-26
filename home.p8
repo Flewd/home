@@ -12,6 +12,15 @@ player.speed=2
 player.x=40
 player.y=40
 player.spritewidth=2
+player.facing=1
+
+throwing=false
+throwingfriend=false
+throwingme=false
+
+throwingx=0
+throwingy=0
+throwingup=true
 
 friend={}
 friend.spr=33
@@ -19,6 +28,7 @@ friend.distance=32
 friend.x=30
 friend.y=30
 friend.spritewidth=1
+friend.pullclose=false
 
 idleanim={}
 idleanim.start=1
@@ -54,14 +64,18 @@ function playerinput()
  dif.x=0
  dif.y=0
 
+if throwing==false then
+
  if (btn(0)) then
   dif.x-=player.speed
   iswalking=true
+  player.facing=-1
  end
 
  if (btn(1)) then
   dif.x+=player.speed
   iswalking=true
+  player.facing=1
  end
 
  if (btn(2)) then
@@ -85,6 +99,7 @@ function playerinput()
   player.x+=dif.x
   player.y+=dif.y
  end
+end -- end throwing
 
 if player.x - cam.x > 75 then
     cam.x+=cam.speed
@@ -93,6 +108,32 @@ end
 if player.x - cam.x < 20 then
     cam.x-=cam.speed
 end
+
+if player.y - cam.y > 75 then
+    cam.y+=cam.speed
+end
+
+if player.y - cam.y < 20 then
+    cam.y-=cam.speed
+end
+
+
+    if (btn(4) and throwing==false) then
+        throwing=true
+        friend.pullclose=true
+        throwingfriend=true
+        throwingx=0
+        throwingy=0
+        throwingup=true
+    end
+
+    if(btn(5)) then
+        friend.pullclose=true
+    end
+
+    if(throwing==true and friend.pullclose==false) then
+        execute_throwing(player.facing)
+    end
 
 end
 
@@ -110,6 +151,62 @@ function animateplayer()
   currentanim.spr=currentanim.start
  end
 
+end
+
+function execute_throwing(direction)
+
+    if (throwingfriend) then
+        if (throwingx < 64) then
+            friend.x+=2*direction
+            throwingx+=2
+        else 
+            throwingfriend=false
+        end
+
+        if (throwingup == true) then
+            friend.y-=1
+            throwingy-=1
+            if (throwingy<=-16) then
+                throwingup=false
+            end
+        else 
+            friend.y+=1
+            throwingy+=1
+            if(throwingy>=0) then
+                throwingup=true
+                throwingfriend=false
+                throwingme=true
+                throwingx=0
+            end
+        end
+    end
+
+
+    if (throwingme) then
+        if (throwingx < 64) then
+            player.x+=2*direction
+            throwingx+=2
+        else 
+            throwingme=false
+        end
+
+        if (throwingup == true) then
+            player.y-=1
+            throwingy-=1
+            if (throwingy<=-16) then
+                throwingup=false
+            end
+        else 
+            player.y+=1
+            throwingy+=1
+            if(throwingy>0) then
+                --throwingup=true
+                throwingfriend=false
+                throwingme=false
+                throwing=false
+            end
+        end
+    end
 end
 
 function can_move(p,dif)
@@ -168,17 +265,31 @@ function friendfollow()
     dif.x=0
     dif.y=0
 
-    if(abs(xdir) > friend.distance) then
-        dif.x=(xdir/40)
-    end
+    if(friend.pullclose==true) then
+        pulledclosed=false
+        if(abs(xdir) > 8) then
+            dif.x=(xdir/20)
+            pulledclosed=true
+        end
+        if(abs(ydir) > 8) then
+            dif.y=(ydir/20)
+            pulledclosed=true
+        end
+        if pulledclosed==false then
+            friend.pullclose=false
+        end
 
-    if(abs(ydir) > friend.distance) then
-        dif.y=(ydir/40)
+    else
+        if(abs(xdir) > friend.distance) then
+            dif.x=(xdir/40)
+        end
+        if(abs(ydir) > friend.distance) then
+            dif.y=(ydir/40)
+        end
     end
 
     if(dif.x!=0 or dif.y!=0) then
      dif = can_move(friend,dif)
-     printh(dif.x)
      friend.x+=dif.x
      friend.y+=dif.y
     end
@@ -195,12 +306,10 @@ end
 function _draw()
  cls()
  camera(cam.x, cam.y)
- map(0, 0, 0, 0, 32, 16)
+ map(0, 0, 0, 0, 64, 32)
  drawrope()
  drawfriend()
  drawplayer()
---	print(player.x,20,30)
---	print(player.y,40,30)
 end
 
 __gfx__
