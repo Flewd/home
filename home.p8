@@ -1,21 +1,103 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
-
 player={}
+
+player.tmr=0
+player.animlength=10
 player.x=0
 player.y=0
 
+idleanim={}
 
-_init()
+idleanim.start=1
+idleanim.spr=idleanim.start
+idleanim.last=1
+idleanim.spritewidth=2
+idleanim.tmr=0
+idleanim.frameduration=10
+
+walkanim={}
+walkanim.start=3
+walkanim.spr=walkanim.start
+walkanim.last=5
+walkanim.spritewidth=2
+walkanim.tmr=0
+walkanim.frameduration=1
+
+currentanim={}
+
+function _init()
+ setplayeranim(idleanim)
+end
+
+function _update()
+ animateplayer()
+ playerinput()
+end
+
+function playerinput()
+ iswalking=false
+ if (btn(0)) then
+  player.x-=1
+  iswalking=true
+ end
+
+ if (btn(1)) then
+  player.x+=1
+  iswalking=true
+ end
+
+ if (btn(2)) then
+  player.y-=1
+  iswalking=true
+ end
+
+ if (btn(3)) then
+  player.y+=1
+  iswalking=true
+ end
+
+ if(iswalking==true) then
+  currentanim=walkanim
+ else
+  currentanim=idleanim
+ end
 
 end
 
-_update()
+function setplayeranim(anim)
+ currentanim={}
+ currentanim.spr=anim.start
+ currentanim.start=1
+ currentanim.last=1
+ currentanim.spritewidth=2
+ currentanim.tmr=0
+ currentanim.frameduration=10
+end
+
+function animateplayer()
+ currentanim.tmr+=1
+ if(currentanim.tmr>=currentanim.frameduration) then
+  currentanim.spr+=currentanim.spritewidth
+  currentanim.tmr=0
+ end
+ if(currentanim.spr>currentanim.last) then
+  currentanim.spr=currentanim.start
+ end
 
 end
 
-_draw()
+function drawplayer()
+ spr(currentanim.spr,player.x,player.y)
+ spr(currentanim.spr+1,player.x+8,player.y)
+ spr(currentanim.spr+16,player.x,player.y+8)
+ spr(currentanim.spr+17,player.x+8,player.y+8)
+end
+
+function _draw()
+ cls()
+ drawplayer()
 
 end
 
