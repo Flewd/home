@@ -1,15 +1,24 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
-player={}
 
-player.tmr=0
-player.animlength=10
-player.x=0
-player.y=0
+cam={}
+cam.x=0
+cam.y=0
+cam.speed=2
+
+player={}
+player.speed=2
+player.x=40
+player.y=40
+
+friend={}
+friend.spr=33
+friend.distance=32
+friend.x=30
+friend.y=30
 
 idleanim={}
-
 idleanim.start=1
 idleanim.spr=idleanim.start
 idleanim.last=1
@@ -34,27 +43,32 @@ end
 function _update()
  animateplayer()
  playerinput()
+ friendfollow()
 end
 
 function playerinput()
  iswalking=false
+ dif={}
+ dif.x=0
+ dif.y=0
+
  if (btn(0)) then
-  player.x-=1
+  dif.x-=player.speed
   iswalking=true
  end
 
  if (btn(1)) then
-  player.x+=1
+  dif.x+=player.speed
   iswalking=true
  end
 
  if (btn(2)) then
-  player.y-=1
+  dif.y-=player.speed
   iswalking=true
  end
 
  if (btn(3)) then
-  player.y+=1
+  dif.y+=player.speed
   iswalking=true
  end
 
@@ -64,16 +78,31 @@ function playerinput()
   currentanim=idleanim
  end
 
+ if(dif.x!=0) then
+  if(can_player_movex(player,dif)==true)then
+    player.x+=dif.x
+  end
+ end
+
+ if(dif.y!=0) then
+    if(can_player_movey(player,dif)==true)then
+    player.y+=dif.y
+  end
+ end
+
+if player.x - cam.x > 75 then
+    cam.x+=cam.speed
+end
+
+if player.x - cam.x < 20 then
+    cam.x-=cam.speed
+end
+
+
 end
 
 function setplayeranim(anim)
- currentanim={}
- currentanim.spr=anim.start
- currentanim.start=1
- currentanim.last=1
- currentanim.spritewidth=2
- currentanim.tmr=0
- currentanim.frameduration=10
+ currentanim=anim
 end
 
 function animateplayer()
@@ -88,6 +117,34 @@ function animateplayer()
 
 end
 
+function can_player_movex(p, diff)
+
+	if diff.x < 0 then
+		if mget((p.x+diff.x)/8,p.y/8) == 65 then return false end
+	end
+
+	if diff.x > 0 then
+		-- +8 is for player width, /8 is for width of map tiles
+        spritewidth=currentanim.spritewidth*8
+		if mget((p.x + diff.x + spritewidth)/8, p.y/8) == 65 then return false end
+	end
+
+	return true
+end
+
+function can_player_movey(p, diff )
+	spritewidth=currentanim.spritewidth*8
+    if diff.y < 0 then
+        if mget(p.x,(p.y + diff.y)/8) == 65 or mget((p.x + spritewidth)/8,(p.y + diff.y)/8) == 65 then return false end
+	end
+
+	if diff.y > 0 then
+		-- +8 is for player width, /8 is for width of map tiles
+		if mget(p.x/8, (p.y + spritewidth)/8) == 65 or mget((p.x + spritewidth)/8,(p.y + spritewidth)/8) == 65 then return false end
+	end
+	return true
+end
+
 function drawplayer()
  spr(currentanim.spr,player.x,player.y)
  spr(currentanim.spr+1,player.x+8,player.y)
@@ -95,9 +152,40 @@ function drawplayer()
  spr(currentanim.spr+17,player.x+8,player.y+8)
 end
 
+function friendfollow()
+-- 20 - 10
+    xdir=player.x - friend.x
+    ydir=player.y - friend.y
+
+    if(abs(xdir) > friend.distance) then
+        friend.x+=(xdir/40)
+    end
+
+    if(abs(ydir) > friend.distance) then
+        friend.y+=(ydir/40)
+    end
+
+end
+
+function drawrope()
+ line( friend.x + 4, friend.y + 4, player.x + 8, player.y + 8, 10 )
+end
+
+function drawfriend()
+ spr(friend.spr,friend.x,friend.y)
+end
+
 function _draw()
  cls()
+ camera(cam.x, cam.y)
+ map(0, 0, 0, 0, 32, 16)
+ drawrope()
+ drawfriend()
  drawplayer()
+ 
+
+--	print(player.x,20,30)
+--	print(player.y,40,30)
 
 end
 
