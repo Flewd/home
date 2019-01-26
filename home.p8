@@ -11,12 +11,14 @@ player={}
 player.speed=2
 player.x=40
 player.y=40
+player.spritewidth=2
 
 friend={}
 friend.spr=33
 friend.distance=32
 friend.x=30
 friend.y=30
+friend.spritewidth=1
 
 idleanim={}
 idleanim.start=1
@@ -79,17 +81,10 @@ function playerinput()
  end
 
  if(dif.x!=0 or dif.y!=0) then
-  if(can_move(player,dif)==true)then
-    player.x+=dif.x
-    player.y+=dif.y
-  end
+  can_move(player,dif)
+  player.x+=dif.x
+  player.y+=dif.y
  end
-
--- if(dif.y!=0) then
- --   if(can_player_movey(player,dif)==true)then
- --   player.y+=dif.y
- -- end
- --end
 
 if player.x - cam.x > 75 then
     cam.x+=cam.speed
@@ -119,64 +114,39 @@ end
 
 function can_move(p,dif)
 
-    spritewidth=currentanim.spritewidth*8
+    spritewidth=p.spritewidth*8
     halfspritewidth=spritewidth/2
+
     top=(p.y + dif.y)
     left=(p.x + dif.x)
     right=(p.x + dif.x + spritewidth)
     bot=(p.y + dif.y + spritewidth)
 
-    if(is_position_wall(left/8, top/8)==true) then return false end
-    if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then return false end
-    if(is_position_wall(left/8, bot/8)==true) then return false end
-    if(is_position_wall((left + halfspritewidth)/8, bot/8)==true) then return false end
-    if(is_position_wall(right/8, top/8)==true) then return false end
-    if(is_position_wall(left/8, (top + halfspritewidth)/8)==true) then return false end
-    if(is_position_wall(right/8, bot/8)==true) then return false end
-    if(is_position_wall(right/8, (bot - halfspritewidth)/8)==true) then return false end
-    
-    return true
-end
+    --if(is_position_wall(left/8, top/8)==true) then end
 
-function can_player_movex(p, diff)
-	if diff.x < 0 then
-        x1=(p.x+diff.x)/8
-        y1=p.y/8
-        --x2=
-        --y2=
-		if is_position_wall(x1,y1) == true then return false end
-	end
+    if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then 
+    dif.y=0
+    end
 
-	if diff.x > 0 then
-		-- +8 is for player width, /8 is for width of map tiles
-        spritewidth=currentanim.spritewidth*8
-        x1=(p.x + diff.x + spritewidth)/8
-        y1=p.y/8
-		if is_position_wall(x1,y1) == true then return false end
-	end
+    --if(is_position_wall(left/8, bot/8)==true) then end
 
-	return true
-end
+    if(is_position_wall((left + halfspritewidth)/8, bot/8)==true) then 
+    dif.y=0
+    end
 
-function can_player_movey(p, diff )
-	spritewidth=currentanim.spritewidth*8
-    if diff.y < 0 then
-        x1=p.x
-        y1=(p.y + diff.y)/8
-        x2=(p.x + spritewidth)/8
-        y2=(p.y + diff.y)/8
-        if is_position_wall(x1,y1) == true or is_position_wall(x2,y2) == true then return false end
-	end
+    --if(is_position_wall(right/8, top/8)==true) then end
 
-	if diff.y > 0 then
-		-- +8 is for player width, /8 is for width of map tiles
-        x1=p.x/8
-        y1=(p.y + spritewidth)/8
-        x2=(p.x + spritewidth)/8
-        y2=(p.y + spritewidth)/8
-		if is_position_wall(x1,y1) == true or is_position_wall(x2,y2) == true then return false end
-	end
-	return true
+    if(is_position_wall(left/8, (top + halfspritewidth)/8)==true) then 
+    dif.x=0 
+    end
+
+    --if(is_position_wall(right/8, bot/8)==true) then end
+
+    if(is_position_wall(right/8, (bot - halfspritewidth)/8)==true) then 
+    dif.x=0
+    end
+
+    return dif
 end
 
 function is_position_wall(x,y)
@@ -191,18 +161,27 @@ function drawplayer()
 end
 
 function friendfollow()
--- 20 - 10
+
     xdir=player.x - friend.x
     ydir=player.y - friend.y
 
+    dif.x=0
+    dif.y=0
+
     if(abs(xdir) > friend.distance) then
-        friend.x+=(xdir/40)
+        dif.x=(xdir/40)
     end
 
     if(abs(ydir) > friend.distance) then
-        friend.y+=(ydir/40)
+        dif.y=(ydir/40)
     end
 
+    if(dif.x!=0 or dif.y!=0) then
+     dif = can_move(friend,dif)
+     printh(dif.x)
+     friend.x+=dif.x
+     friend.y+=dif.y
+    end
 end
 
 function drawrope()
@@ -220,10 +199,8 @@ function _draw()
  drawrope()
  drawfriend()
  drawplayer()
- 
 --	print(player.x,20,30)
 --	print(player.y,40,30)
-
 end
 
 __gfx__
