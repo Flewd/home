@@ -13,6 +13,10 @@ player.y=40
 player.spritewidth=2
 player.facing=1
 
+player.invincible=false
+player.damagetimer=0
+player.invincabletime=90
+
 spikes={}
 
 crosshair={}
@@ -31,10 +35,13 @@ shadow.show=false
 throwing=false
 throwingfriend=false
 throwingme=false
-throwingxdistance=64
+throwingxdistance=0
 throwingx=0
 throwingy=0
 throwingup=true
+
+jumpdistance=40
+damagedistance=10
 
 friendclipping=false
 timesincemove=0
@@ -78,6 +85,13 @@ function _update60()
  playerinput()
  friendfollow()
  updatespikes()
+ is_player_danger()
+ if(player.invincible==true) then
+    player.damagetimer-=1
+    if(player.damagetimer<=0) then
+        player.invincible = false;
+    end
+ end
 end
 
 function createspike(_startx, _starty, _endx, _endy, _speed)
@@ -92,6 +106,7 @@ function createspike(_startx, _starty, _endx, _endy, _speed)
   spike.dir="right"
  end
 
+ spike.spritewidth=1
  spike.spr=51
  spike.x=_startx*8
  spike.y=_starty*8
@@ -100,6 +115,7 @@ function createspike(_startx, _starty, _endx, _endy, _speed)
  spike.endx=_endx*8
  spike.endy=_endy*8
  spike.speed=_speed
+ 
  add(spikes,spike)
 end
 
@@ -174,6 +190,7 @@ if player.y - cam.y < 20 then
 end
 
     if (btn(4) and throwing==false) then
+        throwingxdistance=jumpdistance
         crosshair.timer=crosshair.showtime
         crosshair.x=player.x + (throwingxdistance * player.facing)
         crosshair.y=player.y + ((player.spritewidth*8)/2)
@@ -217,10 +234,10 @@ end
 
 function execute_throwing(direction)
 
-    if(throwingy < 0) then
-     shadow.show=true
-    else
+    if(throwingy >= 0) then
      shadow.show=false
+    else
+     shadow.show=true
     end
 
     if (throwingfriend) then
@@ -235,18 +252,18 @@ function execute_throwing(direction)
         if (throwingup == true) then
             friend.y-=1
             throwingy-=1
-            if (throwingy<=-16) then
+            if (throwingy<=-throwingxdistance/4) then
                 throwingup=false
             end
         else 
             friend.y+=1
             throwingy+=1
             if(throwingy>=0) then
-                throwingup=true
                 throwingfriend=false
+                throwingup=true
                 throwingme=true
-                shadow.y=player.y + ((player.spritewidth*8)/2)
                 throwingx=0
+                shadow.y=player.y + ((player.spritewidth*8)/2)
             end
         end
     end
@@ -264,13 +281,13 @@ function execute_throwing(direction)
         if (throwingup == true) then
             player.y-=1
             throwingy-=1
-            if (throwingy<=-16) then
+            if (throwingy<=-throwingxdistance/4) then
                 throwingup=false
             end
         else 
             player.y+=1
             throwingy+=1
-            if(throwingy>0) then
+            if(throwingy>=0) then
                 --throwingup=true
                 throwingfriend=false
                 throwingme=false
@@ -329,6 +346,55 @@ end
 
 function is_position_wall(x,y)
  return fget( mget(x,y), 1 )
+end
+
+
+function is_player_danger()
+    for s in all(spikes) do
+        if is_collide(player,s) then
+            receivedamageplayer()
+        end
+    end
+end
+
+function receivedamageplayer()
+
+    if(player.invincible==false) then
+        shadow.y=player.y + ((player.spritewidth*8)/2)
+        player.invincible=true
+        player.damagetimer=player.invincabletime
+
+        player.facing*=-1   --flip current facing direction
+        throwingxdistance=damagedistance
+        throwing=true
+        throwingup=true
+        throwingme=true
+        throwingx=0
+        throwingy=0
+    end
+end
+
+function is_collide(objA,objB)
+
+    A={}
+    A.x1=objA.x --top left
+    A.y1=objA.y --top left
+    A.x2=objA.x + (objA.spritewidth*8) --bot right
+    A.y2=objA.y + (objA.spritewidth*8) --bot right
+
+    B={}
+    B.x1=objB.x --top left
+    B.y1=objB.y --top left
+    B.x2=objB.x + (objB.spritewidth*8) --bot right
+    B.y2=objB.y + (objB.spritewidth*8) --bot right
+
+    if(A.x1 > B.x2 or A.x2 < B.x1 or
+       A.y1 > B.y2 or A.y2 < B.y1) then 
+        return false
+    end
+
+    return true
+
 end
 
 function drawplayer()
@@ -467,7 +533,6 @@ function _draw()
  drawplayer()
  drawcrosshair()
 
-    
 end
 
 __gfx__
