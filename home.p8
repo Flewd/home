@@ -47,6 +47,10 @@ friendclipping=false
 timesincemove=0
 clippingtimer=120
 
+friendcatspr=29
+friendfamilyspr=13
+friendgoldspr=33
+
 friend={}
 friend.spr=33
 friend.dmg=0
@@ -89,7 +93,7 @@ function _init()
  setplayeranim(idleanim)
  createspike(21,8,21,14,1)
  createspike(22,12,28,12,1)
-
+ friend.spr=friendfamilyspr
 end
 
 function _update60()
@@ -326,19 +330,21 @@ function can_throw(p)
     return true
 end
 
-function can_move(p,dif)
+function can_move(p,_dif)
 
     spritewidth=p.spritewidth*8
     halfspritewidth=spritewidth/2
 
-    top=(p.y + dif.y)
-    left=(p.x + dif.x)
-    right=(p.x + dif.x + spritewidth)
-    bot=(p.y + dif.y + spritewidth)
-
     localdif={}
-    localdif.x=dif.x
-    localdif.y=dif.y
+    localdif.x=_dif.x
+    localdif.y=_dif.y
+
+    top=(p.y + localdif.y)
+    left=(p.x + localdif.x)
+    right=(p.x + localdif.x + spritewidth)
+    bot=(p.y + localdif.y + spritewidth)
+
+
 
     --if(is_position_wall(left/8, top/8)==true) then end
 
@@ -367,8 +373,42 @@ function can_move(p,dif)
     return localdif
 end
 
+function isfriendsand(p)
+
+    spritewidth=p.spritewidth*8
+    halfspritewidth=spritewidth/2
+
+    top=(p.y)
+    left=(p.x)
+    right=(p.x + spritewidth)
+    bot=(p.y + spritewidth)
+
+        -- check for sand tiles
+    if(is_position_sand((left + halfspritewidth)/8, top/8)==true) then 
+     return true
+    end
+
+    if(is_position_sand((left + halfspritewidth)/8, bot/8)==true) then 
+     return true
+    end
+
+    if(is_position_sand(left/8, (top + halfspritewidth)/8)==true) then 
+     return true
+    end
+
+    if(is_position_sand(right/8, (bot - halfspritewidth)/8)==true) then 
+     return true
+    end
+
+    return false
+end
+
 function is_position_wall(x,y)
  return fget( mget(x,y), 1 )
+end
+
+function is_position_sand(x,y)
+ return fget( mget(x,y), 0 )
 end
 
 
@@ -490,6 +530,9 @@ function friendfollow()
         end
         friend.x+=dif.x
         friend.y+=dif.y
+        if(isfriendsand(friend)) then 
+            receivedamagefriend()
+        end
      else
         tempdif = can_move(friend,dif)
         if(tempdif.x != 0 or tempdif.y != 0) then
@@ -498,6 +541,10 @@ function friendfollow()
         end
         friend.x+=dif.x
         friend.y+=dif.y
+        if(isfriendsand(friend)) then 
+            receivedamagefriend()
+        end
+        
     end
   end
 
