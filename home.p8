@@ -89,9 +89,15 @@ walkanim.frameduration=2
 
 currentanim={}
 
+sandcoverspr=96
+damagesand=112
+
+tiles={}
+tileid=0
 function _init()
  setplayeranim(idleanim)
  --Spike Area 1:
+ --[[
  createspike(21,8,21,14,1)
 createspike(22,12,28,12,1)
 createspike(29,08,29,10,1)
@@ -112,9 +118,13 @@ createspike(45,11,53,11,1)
 createspike(48,10,53,10,1)
 createspike(50,15,50,12,1)
 createspike(45,15,49,15,1)
+]]
 --Spike Area 2:
 
 --
+
+
+createsandcover(10,6)
 
  friend.spr=friendfamilyspr
 end
@@ -128,6 +138,7 @@ function _update60()
  end
  is_player_danger()
  is_friend_danger()
+ is_on_tile()
  if(player.invincible==true) then
     player.damagetimer-=1
     if(player.damagetimer<=0) then
@@ -142,6 +153,17 @@ function _update60()
     end
  end
 
+end
+
+function createsandcover(_x,_y)
+    cover={}
+    cover.x=_x*8
+    cover.y=_y*8
+    cover.spr=sandcoverspr
+    cover.spritewidth=1
+    cover.id=tileid
+    add(tiles,cover)
+    tileid+=1
 end
 
 function createspike(_startx, _starty, _endx, _endy, _speed)
@@ -367,8 +389,6 @@ function can_move(p,_dif)
     right=(p.x + localdif.x + spritewidth)
     bot=(p.y + localdif.y + spritewidth)
 
-
-
     --if(is_position_wall(left/8, top/8)==true) then end
 
     if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then 
@@ -449,6 +469,29 @@ function is_friend_danger()
             receivedamagefriend()
         end
     end
+end
+
+function is_on_tile()
+
+    for t in all(tiles) do
+
+        if is_collide(player,t) then
+            if(t.spr == sandcoverspr) then
+                t.spr = damagesand
+            end
+        end
+
+        if is_collide(friend,t) then
+            --working
+            if(t.spr == sandcoverspr) then
+                t.spr = damagesand
+                friend.damagetimer = friend.invincabletime
+            elseif(t.spr == damagesand) then
+                receivedamagefriend()
+            end
+        end
+    end
+
 end
 
 function receivedamagefriend()
@@ -647,6 +690,12 @@ function drawspikes()
     end
 end
 
+function drawtiles()
+    for t in all(tiles) do
+        spr(t.spr,t.x,t.y)
+    end
+end
+
 function drawyoulose()
     rectfill( player.x-16, player.y-16-30, player.x+64, player.y-16, 1 )
     print("goodbye friend :(",player.x-8, player.y-32, 8)
@@ -655,9 +704,10 @@ end
 function _draw()
  cls()
  camera(cam.x, cam.y)
- map(0, 0, 0, 0, 64, 32)
+ map(0, 0, 0, 0, 128, 32)
  drawshadow()
  drawspikes()
+ drawtiles()
  drawrope()
  drawfriend()
  drawplayer()
