@@ -8,16 +8,17 @@ cam.speed=1
 
 player={}
 player.speed=1
-player.x=40
+player.x=70
 player.y=40
 player.spritewidth=2
-player.facing=1
+player.facing=-1
 
 player.invincible=false
 player.damagetimer=0
-player.invincabletime=90
+player.invincabletime=0
 
 spikes={}
+spikewall={}
 
 crosshair={}
 crosshair.x=0
@@ -52,7 +53,7 @@ friendfamilyspr=13
 friendgoldspr=33
 
 friend={}
-friend.spr=33
+friend.spr=0
 friend.dmg=0
 friend.health=2
 friend.distance=32
@@ -60,6 +61,7 @@ friend.x=30
 friend.y=30
 friend.spritewidth=1
 friend.pullclose=false
+friend.lasttileid=-1
 
 friend.invincible=false
 friend.damagetimer=0
@@ -94,38 +96,51 @@ damagesand=112
 
 tiles={}
 tileid=0
+
+fires={}
+
+
 function _init()
+ createspikewall()
  setplayeranim(idleanim)
  --Spike Area 1:
  
-createspike(21,8,21,15,.75)
-createspike(22,12,28,12,.75)
-createspike(32,07,32,10,.75)
-createspike(29,11,32,11,.75)
-createspike(29,12,29,15,.75)
-createspike(36,10,42,10,.75)
-createspike(36,11,39,11,.75)
-createspike(39,7,39,9,.75)
-createspike(40,11,40,14,.75)
-createspike(41,11,43,11,.75)
-createspike(43,8,43,10,.75)
-createspike(44,10,46,10,.75)
-createspike(44,11,44,13,.75)
-createspike(41,15,49,15,.75)
-createspike(47,8,47,10,.75)
-createspike(45,11,53,11,.75)
-createspike(48,10,53,10,.75)
-createspike(50,15,50,12,.75)
-createspike(45,15,49,15,.75)
+createspike(21,8,21,15,.75, spikes)
+createspike(22,12,28,12,.75,spikes)
+createspike(32,07,32,10,.75,spikes)
+createspike(29,11,32,11,.75,spikes)
+createspike(29,12,29,15,.75,spikes)
+createspike(36,10,42,10,.75,spikes)
+createspike(36,11,39,11,.75,spikes)
+createspike(39,7,39,9,.75,spikes)
+createspike(40,11,40,14,.75,spikes)
+createspike(41,11,43,11,.75,spikes)
+createspike(43,8,43,10,.75,spikes)
+createspike(44,10,46,10,.75,spikes)
+createspike(44,11,44,13,.75,spikes)
+createspike(41,15,49,15,.75,spikes)
+createspike(47,8,47,10,.75,spikes)
+createspike(45,11,53,11,.75,spikes)
+createspike(48,10,53,10,.75,spikes)
+createspike(50,15,50,12,.75,spikes)
+createspike(45,15,49,15,.75,spikes)
 
 --Spike Area 2:
 
 --
 
-
+--test sand
+--[[
 createsandcover(10,6)
-
- friend.spr=friendfamilyspr
+createsandcover(12,6)
+createsandcover(14,6)
+createsandcover(16,6)
+createsandcover(11,8)
+createsandcover(13,8)
+createsandcover(15,8)
+createsandcover(17,8)
+]]
+ 
 end
 
 function _update60()
@@ -154,6 +169,15 @@ function _update60()
 
 end
 
+function createfire(_x,_y)
+    fire={}
+    fire.x=_x
+    fire.y=_y
+    fire.spr=37
+    cover.spritewidth=1
+    add(fires,fire)
+end
+
 function createsandcover(_x,_y)
     cover={}
     cover.x=_x*8
@@ -165,7 +189,34 @@ function createsandcover(_x,_y)
     tileid+=1
 end
 
-function createspike(_startx, _starty, _endx, _endy, _speed)
+function createspikewall()
+
+    createspike(17,8,17,8,0, spikewall)
+    createspike(17,9,17,8,0, spikewall)
+    createspike(17,10,17,8,0, spikewall)
+    createspike(17,11,17,8,0, spikewall)
+
+    createspike(18,8,17,8,0, spikewall)
+    createspike(18,9,17,8,0, spikewall)
+    createspike(18,10,17,8,0, spikewall)
+    createspike(18,11,17,8,0, spikewall)
+
+    createspike(19,8,17,8,0, spikewall)
+    createspike(19,9,17,8,0, spikewall)
+    createspike(19,10,17,8,0, spikewall)
+    createspike(19,11,17,8,0, spikewall)
+
+    createspike(20,8,17,8,0, spikewall)
+    createspike(20,9,17,8,0, spikewall)
+    createspike(20,10,17,8,0, spikewall)
+    createspike(20,11,17,8,0, spikewall)
+
+    for s in all(spikewall) do
+        s.spr=65
+    end
+end
+
+function createspike(_startx, _starty, _endx, _endy, _speed, _table)
 
  spike={}
 
@@ -187,7 +238,7 @@ function createspike(_startx, _starty, _endx, _endy, _speed)
  spike.endy=_endy*8
  spike.speed=_speed
  
- add(spikes,spike)
+ add(_table,spike)
 end
 
 function playerinput()
@@ -460,6 +511,12 @@ function is_player_danger()
             receivedamageplayer()
         end
     end
+
+    for s in all(spikewall) do
+        if is_collide(player,s) then
+            receivedamageplayer()
+        end
+    end
 end
 
 function is_friend_danger()
@@ -482,11 +539,14 @@ function is_on_tile()
 
         if is_collide(friend,t) then
             --working
-            if(t.spr == sandcoverspr) then
-                t.spr = damagesand
-                friend.damagetimer = friend.invincabletime
-            elseif(t.spr == damagesand) then
-                receivedamagefriend()
+            if(friend.lasttileid != t.id) then
+                friend.lasttileid = t.id
+                if(t.spr == sandcoverspr) then
+                    t.spr = damagesand
+                -- friend.damagetimer = friend.invincabletime
+                elseif(t.spr == damagesand) then
+                    receivedamagefriend()
+                end
             end
         end
     end
@@ -616,7 +676,9 @@ function friendfollow()
 end
 
 function drawrope()
- line( friend.x + 4, friend.y + 4, player.x + 8, player.y + 8, 10 )
+ if(friendchosen == true) then 
+  line( friend.x + 4, friend.y + 4, player.x + 8, player.y + 8, 10 )
+ end
 end
 
 function drawfriend()
@@ -687,6 +749,10 @@ function drawspikes()
     for s in all(spikes) do
         spr(s.spr,s.x,s.y)
     end
+
+    for s in all(spikewall) do
+        spr(s.spr,s.x,s.y)
+    end
 end
 
 function drawtiles()
@@ -700,6 +766,69 @@ function drawyoulose()
     print("goodbye friend :(",player.x-8, player.y-32, 8)
 end
 
+startingcat={}
+startingcat.spr=friendcatspr
+startingcat.x=16
+startingcat.y=24
+startingcat.spritewidth=1
+
+startingfamily={}
+startingfamily.spr=friendfamilyspr
+startingfamily.x=16
+startingfamily.y=72
+startingfamily.spritewidth=1
+
+startinggold={}
+startinggold.spr=friendgoldspr
+startinggold.x=16
+startinggold.y=48
+startinggold.spritewidth=1
+
+friendchosen=false
+
+function drawopeningfriends()
+
+    if(friendchosen == false) then
+        spr(startingcat.spr, startingcat.x, startingcat.y)
+        spr(startinggold.spr, startinggold.x,startinggold.y)
+        spr(startingfamily.spr, startingfamily.x, startingfamily.y)
+
+        if is_collide(player,startingcat) then
+            spikewall={}
+            friendchosen=true
+            friend.spr=startingcat.spr
+            friend.x = startingcat.x
+            friend.y = startingcat.y
+            player.invincabletime=90
+        end
+
+        if is_collide(player,startinggold) then
+            spikewall={}
+           friendchosen=true 
+           friend.spr=startinggold.spr
+           friend.x = startinggold.x
+           friend.y = startinggold.y
+           player.invincabletime=90
+        end
+
+        if is_collide(player,startingfamily) then
+            spikewall={}
+            friendchosen=true
+            friend.spr=startingfamily.spr
+            friend.x = startingfamily.x
+            friend.y = startingfamily.y
+            player.invincabletime=90
+        end
+
+        rectfill( 14, 14 + 80, 116, 34+ 80, 5 )
+        print("heading to your new home, \n    choose your most\n     cherished item!", 16, 16 + 80, 8)
+
+    else
+        rectfill( 14, 14 + 80, 116, 28+ 80, 5 )
+        print("z: throw/jump \nx: pull friend closer", 16, 16 + 80, 8)
+    end
+end
+
 function _draw()
  cls()
  camera(cam.x, cam.y)
@@ -711,6 +840,8 @@ function _draw()
  drawfriend()
  drawplayer()
  drawcrosshair()
+
+drawopeningfriends()
 
  if friend.dead then drawyoulose() end
 
