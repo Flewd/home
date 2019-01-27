@@ -113,7 +113,7 @@ loseanim.frameduration=8
 currentanim={}
 
 sandcoverspr=96
-damagesand=112
+damagesand=126
 
 tiles={}
 tileid=0
@@ -230,7 +230,6 @@ function updatefires()
             
             if(f.spr==37) then f.spr=38 
             elseif(f.spr==38) then f.spr=37 end
-            printh(f.spr)
         end
     end
 end
@@ -408,6 +407,8 @@ end
 
     if(throwing==true and friend.pullclose==false) then
         execute_throwing(player.facing)
+    else
+        shadow.show=false
     end
 
 end
@@ -429,6 +430,7 @@ function animateplayer()
 end
 
 function execute_throwing(direction)
+
 
     if(throwingy >= 0) then
      shadow.show=false
@@ -460,6 +462,7 @@ function execute_throwing(direction)
                 throwingme=true
                 throwingx=0
                 shadow.y=player.y + ((player.spritewidth*8)/2)
+                shadow.showing=false
             end
         end
     end
@@ -488,6 +491,8 @@ function execute_throwing(direction)
                 throwingfriend=false
                 throwingme=false
                 throwing=false
+                throwingy=0
+                shadow.showing=false
             end
         end
     end
