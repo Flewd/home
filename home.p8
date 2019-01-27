@@ -18,7 +18,7 @@ spikes={}
 crosshair={}
 crosshair.x=0
 crosshair.y=0
-crosshair.spr=50
+crosshair.spr=52
 crosshair.timer=0
 crosshair.showtime=90
 
@@ -68,7 +68,8 @@ currentanim={}
 
 function _init()
  setplayeranim(idleanim)
- createspike(0,0,0,40,1)
+ createspike(21,8,21,14,1)
+ createspike(22,12,28,12,1)
 
 end
 
@@ -84,20 +85,20 @@ function createspike(_startx, _starty, _endx, _endy, _speed)
  spike={}
 
  if(_startx == _endx) then 
-  spike.dir="right"
- end
-
- if(_starty == _endy) then 
   spike.dir="down"
  end
 
+ if(_starty == _endy) then 
+  spike.dir="right"
+ end
+
  spike.spr=51
- spike.x=_startx
- spike.y=_starty
- spike.startx=_startx
- spike.starty=_starty
- spike.endx=_endx
- spike.endy=_endy
+ spike.x=_startx*8
+ spike.y=_starty*8
+ spike.startx=_startx*8
+ spike.starty=_starty*8
+ spike.endx=_endx*8
+ spike.endy=_endy*8
  spike.speed=_speed
  add(spikes,spike)
 end
@@ -145,14 +146,14 @@ if throwing==false then
  end
 end -- end throwing
 
-xcamright = 65
+xcamright = 75
 if(player.facing > 0) then
- xcamright = 20
+ xcamright = 40
 end
 
-xcamleft = 20
+xcamleft = 40
 if(player.facing < 0) then
- xcamleft = 65
+ xcamleft = 75
 end
 
 
@@ -176,9 +177,9 @@ end
         crosshair.timer=crosshair.showtime
         crosshair.x=player.x + (throwingxdistance * player.facing)
         crosshair.y=player.y + ((player.spritewidth*8)/2)
-        crosshair.spr=51
+        crosshair.spr=53
         if(can_throw(player) == true) then
-            crosshair.spr=50
+            crosshair.spr=52
             throwing=true
             friend.pullclose=true
             throwingfriend=true
@@ -221,7 +222,6 @@ function execute_throwing(direction)
     else
      shadow.show=false
     end
-    printh(shadow.show)
 
     if (throwingfriend) then
         if (throwingx < throwingxdistance) then
@@ -420,8 +420,6 @@ end
 
 function updatespikes()
     for s in all(spikes) do
-        
-
         if(s.dir=="right") then
             s.x += s.speed
             if(s.x >= s.endx) then
@@ -448,10 +446,7 @@ function updatespikes()
             if(s.y >= s.endy) then
                 s.dir="up"
             end
-        end
-
-
-        
+        end        
     end
 end
 
