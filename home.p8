@@ -49,11 +49,23 @@ clippingtimer=120
 
 friend={}
 friend.spr=33
+friend.dmg=0
+friend.health=2
 friend.distance=32
 friend.x=30
 friend.y=30
 friend.spritewidth=1
 friend.pullclose=false
+
+friend.invincible=false
+friend.damagetimer=0
+friend.invincabletime=90
+friend.dead=false
+
+friendfire={}
+friendfire.spr=37
+friendfire.timer=0
+friendfire.framelength=10
 
 idleanim={}
 idleanim.start=1
@@ -82,16 +94,27 @@ end
 
 function _update60()
  animateplayer()
- playerinput()
- friendfollow()
- updatespikes()
+ if(friend.dead==false) then
+    playerinput()
+    friendfollow()
+    updatespikes()
+ end
  is_player_danger()
+ is_friend_danger()
  if(player.invincible==true) then
     player.damagetimer-=1
     if(player.damagetimer<=0) then
         player.invincible = false;
     end
  end
+
+  if(friend.invincible==true) then
+    friend.damagetimer-=1
+    if(friend.damagetimer<=0) then
+        friend.invincible = false;
+    end
+ end
+
 end
 
 function createspike(_startx, _starty, _endx, _endy, _speed)
@@ -357,6 +380,23 @@ function is_player_danger()
     end
 end
 
+function is_friend_danger()
+    for s in all(spikes) do
+        if is_collide(friend,s) then
+            receivedamagefriend()
+        end
+    end
+end
+
+function receivedamagefriend()
+    if(friend.invincible==false) then
+        --shadow.y=friend.y + ((friend.spritewidth*8)/2)
+        friend.invincible=true
+        friend.damagetimer=friend.invincabletime
+        friend.dmg+=1
+    end
+end
+
 function receivedamageplayer()
 
     if(player.invincible==false) then
@@ -468,7 +508,22 @@ function drawrope()
 end
 
 function drawfriend()
- spr(friend.spr,friend.x,friend.y)
+ if friend.dmg > friend.health then
+    drawfriendfire(friend.x,friend.y)
+ else
+    spr(friend.spr+friend.dmg,friend.x,friend.y)
+ end
+end
+
+function drawfriendfire(x,y)
+ friend.dead=true
+ friendfire.timer+=1
+ if(friendfire.timer > friendfire.framelength) then
+    friendfire.timer=0
+    if(friendfire.spr == 38) then friendfire.spr = 37 
+    elseif(friendfire.spr == 37) then friendfire.spr = 38 end
+ end
+  spr(friendfire.spr,x,y)
 end
 
 function drawcrosshair()
@@ -522,6 +577,11 @@ function drawspikes()
     end
 end
 
+function drawyoulose()
+    rectfill( player.x-16, player.y-16-30, player.x+64, player.y-16, 1 )
+    print("goodbye friend :(",player.x-8, player.y-32, 8)
+end
+
 function _draw()
  cls()
  camera(cam.x, cam.y)
@@ -532,6 +592,8 @@ function _draw()
  drawfriend()
  drawplayer()
  drawcrosshair()
+
+ if friend.dead then drawyoulose() end
 
 end
 
