@@ -1,7 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
-
 cam={}
 cam.x=0
 cam.y=0
@@ -14,10 +13,20 @@ player.y=40
 player.spritewidth=2
 player.facing=1
 
+spikes={}
+
 crosshair={}
+crosshair.x=0
+crosshair.y=0
 crosshair.spr=50
 crosshair.timer=0
-crosshair.showtime=180
+crosshair.showtime=90
+
+shadow={}
+shadow.x=0
+shadow.y=0
+shadow.spr=47
+shadow.show=false
 
 throwing=false
 throwingfriend=false
@@ -59,12 +68,38 @@ currentanim={}
 
 function _init()
  setplayeranim(idleanim)
+ createspike(0,0,0,40,1)
+
 end
 
 function _update60()
  animateplayer()
  playerinput()
  friendfollow()
+ updatespikes()
+end
+
+function createspike(_startx, _starty, _endx, _endy, _speed)
+
+ spike={}
+
+ if(_startx == _endx) then 
+  spike.dir="right"
+ end
+
+ if(_starty == _endy) then 
+  spike.dir="down"
+ end
+
+ spike.spr=51
+ spike.x=_startx
+ spike.y=_starty
+ spike.startx=_startx
+ spike.starty=_starty
+ spike.endx=_endx
+ spike.endy=_endy
+ spike.speed=_speed
+ add(spikes,spike)
 end
 
 function playerinput()
@@ -137,9 +172,10 @@ if player.y - cam.y < 20 then
     cam.y-=cam.speed
 end
 
-
     if (btn(4) and throwing==false) then
         crosshair.timer=crosshair.showtime
+        crosshair.x=player.x + (throwingxdistance * player.facing)
+        crosshair.y=player.y + ((player.spritewidth*8)/2)
         crosshair.spr=51
         if(can_throw(player) == true) then
             crosshair.spr=50
@@ -180,9 +216,17 @@ end
 
 function execute_throwing(direction)
 
+    if(throwingy < 0) then
+     shadow.show=true
+    else
+     shadow.show=false
+    end
+    printh(shadow.show)
+
     if (throwingfriend) then
         if (throwingx < throwingxdistance) then
             friend.x+=2*direction
+            shadow.x = friend.x
             throwingx+=2
         else 
             throwingfriend=false
@@ -201,6 +245,7 @@ function execute_throwing(direction)
                 throwingup=true
                 throwingfriend=false
                 throwingme=true
+                shadow.y=player.y + ((player.spritewidth*8)/2)
                 throwingx=0
             end
         end
@@ -210,6 +255,7 @@ function execute_throwing(direction)
     if (throwingme) then
         if (throwingx < throwingxdistance) then
             player.x+=2*direction
+            shadow.x = player.x
             throwingx+=2
         else 
             throwingme=false
@@ -317,6 +363,7 @@ function friendfollow()
         end
         if pulledclosed==false then
             friend.pullclose=false
+            shadow.y=friend.y + ((friend.spritewidth*8)/2)
         end
 
     else
@@ -345,13 +392,9 @@ function friendfollow()
         end
         friend.x+=dif.x
         friend.y+=dif.y
-        
-
-     end
-
-     
-
     end
+  end
+
 end
 
 function drawrope()
@@ -364,19 +407,72 @@ end
 
 function drawcrosshair()
  if(crosshair.timer > 0) then
-  spr(crosshair.spr,player.x + (throwingxdistance * player.facing),player.y)
+  spr(crosshair.spr,crosshair.x,crosshair.y)
   crosshair.timer-=1
  end
+end
+
+function drawshadow()
+    if(shadow.show == true) then 
+     spr(shadow.spr,shadow.x,shadow.y)
+    end
+end
+
+function updatespikes()
+    for s in all(spikes) do
+        
+
+        if(s.dir=="right") then
+            s.x += s.speed
+            if(s.x >= s.endx) then
+                s.dir="left"
+            end
+        end
+
+        if(s.dir=="left") then
+            s.x -= s.speed
+            if(s.x <= s.startx) then
+                s.dir="right"
+            end
+        end
+
+        if(s.dir=="up") then
+            s.y -= s.speed
+            if(s.y <= s.starty) then
+                s.dir="down"
+            end
+        end
+
+        if(s.dir=="down") then
+            s.y += s.speed
+            if(s.y >= s.endy) then
+                s.dir="up"
+            end
+        end
+
+
+        
+    end
+end
+
+function drawspikes()
+    for s in all(spikes) do
+        spr(s.spr,s.x,s.y)
+    end
 end
 
 function _draw()
  cls()
  camera(cam.x, cam.y)
  map(0, 0, 0, 0, 64, 32)
+ drawshadow()
+ drawspikes()
  drawrope()
  drawfriend()
  drawplayer()
  drawcrosshair()
+
+    
 end
 
 __gfx__
