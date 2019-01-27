@@ -14,6 +14,11 @@ player.y=40
 player.spritewidth=2
 player.facing=1
 
+crosshair={}
+crosshair.spr=50
+crosshair.timer=0
+crosshair.showtime=180
+
 throwing=false
 throwingfriend=false
 throwingme=false
@@ -105,11 +110,22 @@ if throwing==false then
  end
 end -- end throwing
 
-if player.x - cam.x > 75 then
+xcamright = 65
+if(player.facing > 0) then
+ xcamright = 20
+end
+
+xcamleft = 20
+if(player.facing < 0) then
+ xcamleft = 65
+end
+
+
+if player.x - cam.x > xcamright then
     cam.x+=cam.speed
 end
 
-if player.x - cam.x < 20 then
+if player.x - cam.x < xcamleft then
     cam.x-=cam.speed
 end
 
@@ -123,7 +139,10 @@ end
 
 
     if (btn(4) and throwing==false) then
+        crosshair.timer=crosshair.showtime
+        crosshair.spr=51
         if(can_throw(player) == true) then
+            crosshair.spr=50
             throwing=true
             friend.pullclose=true
             throwingfriend=true
@@ -343,6 +362,13 @@ function drawfriend()
  spr(friend.spr,friend.x,friend.y)
 end
 
+function drawcrosshair()
+ if(crosshair.timer > 0) then
+  spr(crosshair.spr,player.x + (throwingxdistance * player.facing),player.y)
+  crosshair.timer-=1
+ end
+end
+
 function _draw()
  cls()
  camera(cam.x, cam.y)
@@ -350,6 +376,7 @@ function _draw()
  drawrope()
  drawfriend()
  drawplayer()
+ drawcrosshair()
 end
 
 __gfx__
