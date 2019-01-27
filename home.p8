@@ -104,6 +104,18 @@ tileid=0
 
 fires={}
 
+skeleton={}
+skeleton.speed=1
+skeleton.x=120*8
+skeleton.y=56*8
+
+skeleton.spritewidth=2
+skeleton.facing=-1
+
+skeleton.invincible=false
+skeleton.damagetimer=0
+skeleton.invincabletime=0
+
 
 function _init()
  createspikewall()
