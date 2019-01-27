@@ -10,6 +10,11 @@ player={}
 player.speed=1
 player.x=70
 player.y=40
+
+--debug start at tile
+--player.x=105*8
+--player.y=55*8
+
 player.spritewidth=2
 player.facing=-1
 
@@ -154,6 +159,22 @@ function _update60()
     end
  end
 
+ updatefires()
+
+end
+
+function updatefires()
+    for f in all(fires) do
+        f.timer+=1
+        
+        if(f.timer >= f.framelength) then
+            f.timer = 0;
+            
+            if(f.spr==37) then f.spr=38 
+            elseif(f.spr==38) then f.spr=37 end
+            printh(f.spr)
+        end
+    end
 end
 
 function createfire(_x,_y)
@@ -161,7 +182,9 @@ function createfire(_x,_y)
     fire.x=_x
     fire.y=_y
     fire.spr=37
-    cover.spritewidth=1
+    fire.spritewidth=1
+    fire.timer=rnd(10)
+    fire.framelength=20
     add(fires,fire)
 end
 
@@ -748,6 +771,12 @@ function drawtiles()
     end
 end
 
+function drawfires()
+    for f in all(fires) do
+       spr(f.spr,f.x,f.y)
+    end
+end
+
 function drawyoulose()
     rectfill( player.x-16, player.y-16-30, player.x+64, player.y-16, 1 )
     print("goodbye friend :(",player.x-8, player.y-32, 8)
@@ -787,6 +816,8 @@ function drawopeningfriends()
             friend.x = startingcat.x
             friend.y = startingcat.y
             player.invincabletime=90
+            createfire(startinggold.x,startinggold.y)
+            createfire(startingfamily.x, startingfamily.y)
         end
 
         if is_collide(player,startinggold) then
@@ -796,6 +827,8 @@ function drawopeningfriends()
            friend.x = startinggold.x
            friend.y = startinggold.y
            player.invincabletime=90
+           createfire(startingcat.x,startingcat.y)
+            createfire(startingfamily.x, startingfamily.y)
         end
 
         if is_collide(player,startingfamily) then
@@ -805,6 +838,8 @@ function drawopeningfriends()
             friend.x = startingfamily.x
             friend.y = startingfamily.y
             player.invincabletime=90
+            createfire(startingcat.x,startingcat.y)
+            createfire(startinggold.x, startinggold.y)
         end
 
         rectfill( 14, 14 + 80, 116, 34+ 80, 5 )
@@ -819,7 +854,8 @@ end
 function _draw()
  cls()
  camera(cam.x, cam.y)
- map(0, 0, 0, 0, 128, 32)
+ map(0, 0, 0, 0, 127, 31)
+ map(0, 31, 0, 31*8, 128, 63)
  drawshadow()
  drawspikes()
  drawtiles()
@@ -827,8 +863,8 @@ function _draw()
  drawfriend()
  drawplayer()
  drawcrosshair()
-
-drawopeningfriends()
+ drawopeningfriends()
+ drawfires()
 
  if friend.dead then drawyoulose() end
 
