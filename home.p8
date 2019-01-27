@@ -21,6 +21,12 @@ crosshair.spr=50
 crosshair.timer=0
 crosshair.showtime=90
 
+shadow={}
+shadow.x=0
+shadow.y=0
+shadow.spr=47
+shadow.show=false
+
 throwing=false
 throwingfriend=false
 throwingme=false
@@ -142,7 +148,7 @@ end
     if (btn(4) and throwing==false) then
         crosshair.timer=crosshair.showtime
         crosshair.x=player.x + (throwingxdistance * player.facing)
-        crosshair.y=player.y + (player.spritewidth/2)
+        crosshair.y=player.y + ((player.spritewidth*8)/2)
         crosshair.spr=51
         if(can_throw(player) == true) then
             crosshair.spr=50
@@ -183,9 +189,17 @@ end
 
 function execute_throwing(direction)
 
+    if(throwingy < 0) then
+     shadow.show=true
+    else
+     shadow.show=false
+    end
+    printh(shadow.show)
+
     if (throwingfriend) then
         if (throwingx < throwingxdistance) then
             friend.x+=2*direction
+            shadow.x = friend.x
             throwingx+=2
         else 
             throwingfriend=false
@@ -204,6 +218,7 @@ function execute_throwing(direction)
                 throwingup=true
                 throwingfriend=false
                 throwingme=true
+                shadow.y=player.y + ((player.spritewidth*8)/2)
                 throwingx=0
             end
         end
@@ -213,6 +228,7 @@ function execute_throwing(direction)
     if (throwingme) then
         if (throwingx < throwingxdistance) then
             player.x+=2*direction
+            shadow.x = player.x
             throwingx+=2
         else 
             throwingme=false
@@ -320,6 +336,7 @@ function friendfollow()
         end
         if pulledclosed==false then
             friend.pullclose=false
+            shadow.y=friend.y + ((friend.spritewidth*8)/2)
         end
 
     else
@@ -348,13 +365,9 @@ function friendfollow()
         end
         friend.x+=dif.x
         friend.y+=dif.y
-        
-
-     end
-
-     
-
     end
+  end
+
 end
 
 function drawrope()
@@ -373,13 +386,16 @@ function drawcrosshair()
 end
 
 function drawshadow()
-
+    if(shadow.show == true) then 
+     spr(shadow.spr,shadow.x,shadow.y)
+    end
 end
 
 function _draw()
  cls()
  camera(cam.x, cam.y)
  map(0, 0, 0, 0, 64, 32)
+ drawshadow()
  drawrope()
  drawfriend()
  drawplayer()
