@@ -281,8 +281,7 @@ createsandcover(11,8)
 createsandcover(13,8)
 createsandcover(15,8)
 createsandcover(17,8)
-]]
- 
+ ]]
 end
 
 function _update60()
@@ -942,8 +941,8 @@ function drawfires()
 end
 
 function drawyoulose()
-    rectfill( player.x-16, player.y-16-30, player.x+64, player.y-16, 1 )
-    print("goodbye friend :(",player.x-8, player.y-32, 8)
+    rectfill( player.x-32, player.y-16, player.x+45, player.y-5, 1 )
+    print("goodbye friend :(",player.x-24, player.y-12, 8)
 end
 
 startingcat={}
@@ -1033,7 +1032,6 @@ function _draw()
  drawending()
 
  if friend.dead then drawyoulose() end
-
 end
 
 
