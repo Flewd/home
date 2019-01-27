@@ -607,7 +607,7 @@ function is_friend_danger()
 end
 
 function is_on_tile()
-
+ if(throwing == false) then
     for t in all(tiles) do
 
         if is_collide(player,t) then
@@ -629,7 +629,7 @@ function is_on_tile()
             end
         end
     end
-
+    end
 end
 
 function receivedamagefriend()
