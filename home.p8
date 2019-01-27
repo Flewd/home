@@ -91,8 +91,31 @@ currentanim={}
 
 function _init()
  setplayeranim(idleanim)
+ --Spike Area 1:
  createspike(21,8,21,14,1)
- createspike(22,12,28,12,1)
+createspike(22,12,28,12,1)
+createspike(29,08,29,10,1)
+createspike(32,07,32,10,1)
+createspike(29,11,32,11,1)
+createspike(29,12,29,14,1)
+createspike(36,10,42,10,1)
+createspike(36,11,39,11,1)
+createspike(40,8,40,9,1)
+createspike(40,11,40,14,1)
+createspike(41,11,43,11,1)
+createspike(43,8,43,10,1)
+createspike(44,10,46,10,1)
+createspike(44,11,44,13,1)
+createspike(41,14,49,14,1)
+createspike(47,8,47,10,1)
+createspike(45,11,53,11,1)
+createspike(48,10,53,10,1)
+createspike(50,15,50,12,1)
+createspike(45,15,49,15,1)
+--Spike Area 2:
+
+--
+
  friend.spr=friendfamilyspr
 end
 
