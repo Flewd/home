@@ -5,10 +5,10 @@ __lua__
 cam={}
 cam.x=0
 cam.y=0
-cam.speed=2
+cam.speed=1
 
 player={}
-player.speed=2
+player.speed=1
 player.x=40
 player.y=40
 player.spritewidth=2
@@ -44,7 +44,7 @@ walkanim.spr=walkanim.start
 walkanim.last=5
 walkanim.spritewidth=2
 walkanim.tmr=0
-walkanim.frameduration=1
+walkanim.frameduration=2
 
 currentanim={}
 
@@ -52,7 +52,7 @@ function _init()
  setplayeranim(idleanim)
 end
 
-function _update()
+function _update60()
  animateplayer()
  playerinput()
  friendfollow()
