@@ -11,24 +11,12 @@ player={}
 player.speed=2
 player.x=40
 player.y=40
-player.spritewidth=2
-player.facing=1
-
-throwing=false
-throwingfriend=false
-throwingme=false
-
-throwingx=0
-throwingy=0
-throwingup=true
 
 friend={}
 friend.spr=33
 friend.distance=32
 friend.x=30
 friend.y=30
-friend.spritewidth=1
-friend.pullclose=false
 
 idleanim={}
 idleanim.start=1
@@ -64,18 +52,14 @@ function playerinput()
  dif.x=0
  dif.y=0
 
-if throwing==false then
-
  if (btn(0)) then
   dif.x-=player.speed
   iswalking=true
-  player.facing=-1
  end
 
  if (btn(1)) then
   dif.x+=player.speed
   iswalking=true
-  player.facing=1
  end
 
  if (btn(2)) then
@@ -95,11 +79,17 @@ if throwing==false then
  end
 
  if(dif.x!=0 or dif.y!=0) then
-  can_move(player,dif)
-  player.x+=dif.x
-  player.y+=dif.y
+  if(can_move(player,dif)==true)then
+    player.x+=dif.x
+    player.y+=dif.y
+  end
  end
-end -- end throwing
+
+-- if(dif.y!=0) then
+ --   if(can_player_movey(player,dif)==true)then
+ --   player.y+=dif.y
+ -- end
+ --end
 
 if player.x - cam.x > 75 then
     cam.x+=cam.speed
@@ -108,32 +98,6 @@ end
 if player.x - cam.x < 20 then
     cam.x-=cam.speed
 end
-
-if player.y - cam.y > 75 then
-    cam.y+=cam.speed
-end
-
-if player.y - cam.y < 20 then
-    cam.y-=cam.speed
-end
-
-
-    if (btn(4) and throwing==false) then
-        throwing=true
-        friend.pullclose=true
-        throwingfriend=true
-        throwingx=0
-        throwingy=0
-        throwingup=true
-    end
-
-    if(btn(5)) then
-        friend.pullclose=true
-    end
-
-    if(throwing==true and friend.pullclose==false) then
-        execute_throwing(player.facing)
-    end
 
 end
 
@@ -153,97 +117,66 @@ function animateplayer()
 
 end
 
-function execute_throwing(direction)
-
-    if (throwingfriend) then
-        if (throwingx < 64) then
-            friend.x+=2*direction
-            throwingx+=2
-        else 
-            throwingfriend=false
-        end
-
-        if (throwingup == true) then
-            friend.y-=1
-            throwingy-=1
-            if (throwingy<=-16) then
-                throwingup=false
-            end
-        else 
-            friend.y+=1
-            throwingy+=1
-            if(throwingy>=0) then
-                throwingup=true
-                throwingfriend=false
-                throwingme=true
-                throwingx=0
-            end
-        end
-    end
-
-
-    if (throwingme) then
-        if (throwingx < 64) then
-            player.x+=2*direction
-            throwingx+=2
-        else 
-            throwingme=false
-        end
-
-        if (throwingup == true) then
-            player.y-=1
-            throwingy-=1
-            if (throwingy<=-16) then
-                throwingup=false
-            end
-        else 
-            player.y+=1
-            throwingy+=1
-            if(throwingy>0) then
-                --throwingup=true
-                throwingfriend=false
-                throwingme=false
-                throwing=false
-            end
-        end
-    end
-end
-
 function can_move(p,dif)
 
-    spritewidth=p.spritewidth*8
+    spritewidth=currentanim.spritewidth*8
     halfspritewidth=spritewidth/2
-
     top=(p.y + dif.y)
     left=(p.x + dif.x)
     right=(p.x + dif.x + spritewidth)
     bot=(p.y + dif.y + spritewidth)
 
-    --if(is_position_wall(left/8, top/8)==true) then end
+    if(is_position_wall(left/8, top/8)==true) then return false end
+    if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then return false end
+    if(is_position_wall(left/8, bot/8)==true) then return false end
+    if(is_position_wall((left + halfspritewidth)/8, bot/8)==true) then return false end
+    if(is_position_wall(right/8, top/8)==true) then return false end
+    if(is_position_wall(left/8, (top + halfspritewidth)/8)==true) then return false end
+    if(is_position_wall(right/8, bot/8)==true) then return false end
+    if(is_position_wall(right/8, (bot - halfspritewidth)/8)==true) then return false end
+    
+    return true
+end
 
-    if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then 
-    dif.y=0
-    end
+function can_player_movex(p, diff)
+	if diff.x < 0 then
+        x1=(p.x+diff.x)/8
+        y1=p.y/8
+        --x2=
+        --y2=
+		if is_position_wall(x1,y1) == true then return false end
+	end
 
-    --if(is_position_wall(left/8, bot/8)==true) then end
+	if diff.x > 0 then
+		-- +8 is for player width, /8 is for width of map tiles
+        spritewidth=currentanim.spritewidth*8
+        x1=(p.x + diff.x + spritewidth)/8
+        y1=p.y/8
+		if is_position_wall(x1,y1) == true then return false end
+	end
 
-    if(is_position_wall((left + halfspritewidth)/8, bot/8)==true) then 
-    dif.y=0
-    end
+	return true
+end
 
-    --if(is_position_wall(right/8, top/8)==true) then end
+function can_player_movey(p, diff )
+	spritewidth=currentanim.spritewidth*8
+    if diff.y < 0 then
+        x1=p.x
+        y1=(p.y + diff.y)/8
+        x2=(p.x + spritewidth)/8
+        y2=(p.y + diff.y)/8
+        if is_position_wall(x1,y1) == true or is_position_wall(x2,y2) == true then return false end
+	end
 
-    if(is_position_wall(left/8, (top + halfspritewidth)/8)==true) then 
-    dif.x=0 
-    end
-
-    --if(is_position_wall(right/8, bot/8)==true) then end
-
-    if(is_position_wall(right/8, (bot - halfspritewidth)/8)==true) then 
-    dif.x=0
-    end
-
-    return dif
+	if diff.y > 0 then
+		-- +8 is for player width, /8 is for width of map tiles
+        x1=p.x/8
+        y1=(p.y + spritewidth)/8
+        x2=(p.x + spritewidth)/8
+        y2=(p.y + spritewidth)/8
+		if is_position_wall(x1,y1) == true or is_position_wall(x2,y2) == true then return false end
+	end
+	return true
 end
 
 function is_position_wall(x,y)
@@ -258,41 +191,18 @@ function drawplayer()
 end
 
 function friendfollow()
-
+-- 20 - 10
     xdir=player.x - friend.x
     ydir=player.y - friend.y
 
-    dif.x=0
-    dif.y=0
-
-    if(friend.pullclose==true) then
-        pulledclosed=false
-        if(abs(xdir) > 8) then
-            dif.x=(xdir/20)
-            pulledclosed=true
-        end
-        if(abs(ydir) > 8) then
-            dif.y=(ydir/20)
-            pulledclosed=true
-        end
-        if pulledclosed==false then
-            friend.pullclose=false
-        end
-
-    else
-        if(abs(xdir) > friend.distance) then
-            dif.x=(xdir/40)
-        end
-        if(abs(ydir) > friend.distance) then
-            dif.y=(ydir/40)
-        end
+    if(abs(xdir) > friend.distance) then
+        friend.x+=(xdir/40)
     end
 
-    if(dif.x!=0 or dif.y!=0) then
-     dif = can_move(friend,dif)
-     friend.x+=dif.x
-     friend.y+=dif.y
+    if(abs(ydir) > friend.distance) then
+        friend.y+=(ydir/40)
     end
+
 end
 
 function drawrope()
@@ -306,10 +216,14 @@ end
 function _draw()
  cls()
  camera(cam.x, cam.y)
- map(0, 0, 0, 0, 64, 32)
+ map(0, 0, 0, 0, 32, 16)
  drawrope()
  drawfriend()
  drawplayer()
+ 
+--	print(player.x,20,30)
+--	print(player.y,40,30)
+
 end
 
 __gfx__
@@ -334,9 +248,9 @@ __gfx__
 00000000277777720f4f4ff04400000044000000000aaa0000aaaaa0000077777777770000007777777777000000777777777700000077777777770000000000
 00000000277c7c7200ffff00440aaa0044000a0000aaaaa000aa9aa0000077755755770000007775575577000000777877787700000077787778770000000000
 0000000027777772000ff000064aaaa0064aaaa00aaaaaa00aa989aa000077755755770000007775575577000000777887887700000077788788770000000000
-000000002787787200ffff00004aaa40004aaa4aaa9999aaaa99899a000077777777770000007777777777000000777777777700000077777777770000000000
-00000000277887720fffff0f0044444000444440a998899aa998889a000077775577770000007777557777000000777577577700000077757757770000000000
-00000000222222220f4f4fff0044444000444440a988889aa988888a000007757757700000000775775770000000077555577000000007755557700000000000
+000000002787787200ffff00004aaa40004aaa4aaa9999aaaa99899a000077777777770000007777777777000000777777777700000077777777770000555500
+00000000277887720fffff0f0044444000444440a998899aa998889a000077775577770000007777557777000000777577577700000077757757770005555550
+00000000222222220f4f4fff0044444000444440a988889aa988888a000007757757700000000775775770000000077555577000000007755557700000555500
 00000000000000000000000000006000000000000000000000000000000000777777000000000077777700000000007777770000000000777777000000000000
 00000000000011110000111100068600000000000000000000000000000000007000000000000000700000000000000070000000000000007000000000000000
 00000000110b0001110b000100658560000000000000000000000000000007007007000000000000700000000000070070070000000007007007000000000000
@@ -416,7 +330,7 @@ __map__
 000000000000000040404040405657585950506060525354555253545552535455525354555253545552535455000000000040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000393a000000000000000000
 000000000000000040404040404e4f4c4d505060606163646562636465626364656263646562636465626364650000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000000000000000000405e5f5c5d505060606173747572737475727374757273747572737475727374750000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-000000000000000000000000404647484950606060707046477070707070704e4f0000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000000000000000000000000404647484950606060707046472f2f707070704e4f0000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000040565758595060606070705657484970704c4d5e5f0000404000000000000000000040404000400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000004048494e4f5060606048497070585970705c5d70700000004000000000000000000000004040400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003900000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000004058595e5f506060605859704a4b7070704849707000000040000000000000000000000040400040400000000000000000000000000000000000000000000000000000000000000000003a0000000000000000000000000000000039000000000000000000000000000000000000000000000000
