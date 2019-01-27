@@ -15,9 +15,11 @@ player.spritewidth=2
 player.facing=1
 
 crosshair={}
+crosshair.x=0
+crosshair.y=0
 crosshair.spr=50
 crosshair.timer=0
-crosshair.showtime=180
+crosshair.showtime=90
 
 throwing=false
 throwingfriend=false
@@ -137,9 +139,10 @@ if player.y - cam.y < 20 then
     cam.y-=cam.speed
 end
 
-
     if (btn(4) and throwing==false) then
         crosshair.timer=crosshair.showtime
+        crosshair.x=player.x + (throwingxdistance * player.facing)
+        crosshair.y=player.y + (player.spritewidth/2)
         crosshair.spr=51
         if(can_throw(player) == true) then
             crosshair.spr=50
@@ -364,9 +367,13 @@ end
 
 function drawcrosshair()
  if(crosshair.timer > 0) then
-  spr(crosshair.spr,player.x + (throwingxdistance * player.facing),player.y)
+  spr(crosshair.spr,crosshair.x,crosshair.y)
   crosshair.timer-=1
  end
+end
+
+function drawshadow()
+
 end
 
 function _draw()
