@@ -17,10 +17,14 @@ player.facing=1
 throwing=false
 throwingfriend=false
 throwingme=false
-
+throwingxdistance=64
 throwingx=0
 throwingy=0
 throwingup=true
+
+friendclipping=false
+timesincemove=0
+clippingtimer=120
 
 friend={}
 friend.spr=33
@@ -95,7 +99,7 @@ if throwing==false then
  end
 
  if(dif.x!=0 or dif.y!=0) then
-  can_move(player,dif)
+  dif = can_move(player,dif)
   player.x+=dif.x
   player.y+=dif.y
  end
@@ -119,12 +123,14 @@ end
 
 
     if (btn(4) and throwing==false) then
-        throwing=true
-        friend.pullclose=true
-        throwingfriend=true
-        throwingx=0
-        throwingy=0
-        throwingup=true
+        if(can_throw(player) == true) then
+            throwing=true
+            friend.pullclose=true
+            throwingfriend=true
+            throwingx=0
+            throwingy=0
+            throwingup=true
+        end
     end
 
     if(btn(5)) then
@@ -156,7 +162,7 @@ end
 function execute_throwing(direction)
 
     if (throwingfriend) then
-        if (throwingx < 64) then
+        if (throwingx < throwingxdistance) then
             friend.x+=2*direction
             throwingx+=2
         else 
@@ -183,7 +189,7 @@ function execute_throwing(direction)
 
 
     if (throwingme) then
-        if (throwingx < 64) then
+        if (throwingx < throwingxdistance) then
             player.x+=2*direction
             throwingx+=2
         else 
@@ -209,6 +215,12 @@ function execute_throwing(direction)
     end
 end
 
+function can_throw(p)
+    iswall = is_position_wall( (p.x + (throwingxdistance * player.facing))/8, p.y/8 )
+    if(iswall==true) then return false end
+    return true
+end
+
 function can_move(p,dif)
 
     spritewidth=p.spritewidth*8
@@ -219,31 +231,35 @@ function can_move(p,dif)
     right=(p.x + dif.x + spritewidth)
     bot=(p.y + dif.y + spritewidth)
 
+    localdif={}
+    localdif.x=dif.x
+    localdif.y=dif.y
+
     --if(is_position_wall(left/8, top/8)==true) then end
 
     if(is_position_wall((left + halfspritewidth)/8, top/8)==true) then 
-    dif.y=0
+    localdif.y=0
     end
 
     --if(is_position_wall(left/8, bot/8)==true) then end
 
     if(is_position_wall((left + halfspritewidth)/8, bot/8)==true) then 
-    dif.y=0
+    localdif.y=0
     end
 
     --if(is_position_wall(right/8, top/8)==true) then end
 
     if(is_position_wall(left/8, (top + halfspritewidth)/8)==true) then 
-    dif.x=0 
+    localdif.x=0 
     end
 
     --if(is_position_wall(right/8, bot/8)==true) then end
 
     if(is_position_wall(right/8, (bot - halfspritewidth)/8)==true) then 
-    dif.x=0
+    localdif.x=0
     end
 
-    return dif
+    return localdif
 end
 
 function is_position_wall(x,y)
@@ -258,6 +274,11 @@ function drawplayer()
 end
 
 function friendfollow()
+    timesincemove+=1
+    
+    if(timesincemove>clippingtimer) then
+        friendclipping=true
+    end
 
     xdir=player.x - friend.x
     ydir=player.y - friend.y
@@ -280,18 +301,37 @@ function friendfollow()
         end
 
     else
+        
         if(abs(xdir) > friend.distance) then
-            dif.x=(xdir/40)
+            dif.x=(xdir/60)
         end
         if(abs(ydir) > friend.distance) then
-            dif.y=(ydir/40)
+            dif.y=(ydir/60)
         end
     end
 
     if(dif.x!=0 or dif.y!=0) then
-     dif = can_move(friend,dif)
-     friend.x+=dif.x
-     friend.y+=dif.y
+     if(friendclipping == false) then
+        dif = can_move(friend,dif)
+        if(dif.x!=0 or dif.y!=0) then
+            timesincemove=0
+        end
+        friend.x+=dif.x
+        friend.y+=dif.y
+     else
+        tempdif = can_move(friend,dif)
+        if(tempdif.x != 0 or tempdif.y != 0) then
+            friendclipping = false
+            timesincemove=0
+        end
+        friend.x+=dif.x
+        friend.y+=dif.y
+        
+
+     end
+
+     
+
     end
 end
 
@@ -394,7 +434,7 @@ __gfx__
 00000000000000000000000707000000000007070707000000000007000000000000000707000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000070000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __gff__
-0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020202020001000100010001000100000000020200000000000000000000000000020202020000000000000000000001000200000200000000000000000000
+0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020202020201000100010001000100000002020202000000000000000000000000020202020000000000000000000001000202020200000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 4141414141414141414141414141414141414141414243444542434445424344454243444542434445424344454040000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
