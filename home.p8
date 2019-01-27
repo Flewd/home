@@ -94,6 +94,22 @@ walkanim.spritewidth=2
 walkanim.tmr=0
 walkanim.frameduration=2
 
+winanim={}
+winanim.start=11
+winanim.spr=winanim.start
+winanim.last=11
+winanim.spritewidth=2
+winanim.tmr=0
+winanim.frameduration=2
+
+loseanim={}
+loseanim.start=7
+loseanim.spr=loseanim.start
+loseanim.last=9
+loseanim.spritewidth=2
+loseanim.tmr=0
+loseanim.frameduration=8
+
 currentanim={}
 
 sandcoverspr=96
@@ -106,8 +122,11 @@ fires={}
 
 skeleton={}
 skeleton.speed=1
+skeleton.spr=43
 skeleton.x=120*8
-skeleton.y=56*8
+skeleton.y=55*8
+skeleton.tmr=0
+skeleton.frameduration=20
 
 skeleton.spritewidth=2
 skeleton.facing=-1
@@ -159,7 +178,9 @@ end
 function _update60()
  animateplayer()
  if(friend.dead==false) then
-    playerinput()
+  if(win==false) then 
+        playerinput()
+    end
     friendfollow()
     updatespikes()
  end
@@ -302,11 +323,17 @@ if throwing==false then
   iswalking=true
  end
 
- if(iswalking==true) then
-  currentanim=walkanim
- else
-  currentanim=idleanim
- end
+
+    if(iswalking==true) then
+        currentanim=walkanim
+    else
+        currentanim=idleanim
+    end
+ 
+    
+
+
+
 
  if(dif.x!=0 or dif.y!=0) then
   dif = can_move(player,dif)
@@ -729,6 +756,7 @@ function drawfriendfire(x,y)
     elseif(friendfire.spr == 37) then friendfire.spr = 38 end
  end
   spr(friendfire.spr,x,y)
+  currentanim=loseanim
 end
 
 function drawcrosshair()
@@ -887,9 +915,56 @@ function _draw()
  drawopeningfriends()
  drawfires()
 
+ drawending()
+
  if friend.dead then drawyoulose() end
 
 end
+
+
+endingcol={}
+endingcol.x=112*8
+endingcol.y=55*8
+endingcol.spritewidth=3
+
+win=false
+
+skeletontargetx = (115*8)
+
+function drawending()
+
+    spr(skeleton.spr,skeleton.x,skeleton.y)
+    spr(skeleton.spr+1,skeleton.x+8,skeleton.y)
+    spr(skeleton.spr+16,skeleton.x,skeleton.y+8)
+    spr(skeleton.spr+17,skeleton.x+8,skeleton.y+8)
+
+    if is_collide(player,endingcol) == true then
+        win=true
+    end
+
+   -- rectfill( endingcol.x,endingcol.y, endingcol.x + (8*endingcol.spritewidth) ,endingcol.y +( 8* endingcol.spritewidth), 5 )
+
+    if(win==true) then
+        if(skeleton.x > skeletontargetx) then
+            skeleton.x -= skeleton.speed
+        end
+
+        rectfill( player.x-16, player.y-16-30, player.x+64, player.y-16, 1 )
+        print("welcome home",player.x, player.y-32, 8)
+        currentanim=winanim
+    end
+
+
+    skeleton.tmr+=1
+    if(skeleton.tmr >= skeleton.frameduration) then
+        skeleton.tmr = 0
+        if(skeleton.spr==43) then skeleton.spr=45 
+        elseif (skeleton.spr==45) then skeleton.spr=43 end
+    end
+
+end
+
+
 
 __gfx__
 00000000cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc222222222222222222222222
